@@ -18,6 +18,13 @@ class User(models.Model):
 
 
 class Post(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
     latitude = models.DecimalField(max_digits=9, decimal_places=6)  # широта
     longitude = models.DecimalField(max_digits=9, decimal_places=6)  # долгота
     height = models.DecimalField(max_digits=6, decimal_places=2)  # высота
@@ -25,10 +32,14 @@ class Post(models.Model):
     # В случае удаления пользователя оставляем запись
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)  # Время создания
+    images = models.ManyToManyField('PostImage')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='new')  # Статус модерации
+
+    objects = models.Manager()
 
 
 class PostImage(models.Model):
-    # Привязываем изображений к конкретной записи
-    post = models.ForeignKey(Post, related_name='images', on_delete=models.CASCADE)
-    # Сохраняем путь к изображению
+    # Сохраняем ссылки на изображения
     image = models.ImageField(upload_to='images/')
+
+    objects = models.Manager()
