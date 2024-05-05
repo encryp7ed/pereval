@@ -13,27 +13,45 @@ class User(models.Model):
         'unique': _('A user with that phone number already exists.'),
     })
 
-    def get_full_name(self):
-        return f"{self.last_name} {self.first_name} {self.middle_name}"
+    def __str__(self):
+        return f'{self.last_name} {self.first_name} {self.middle_name} {self.email} {self.phone_number}'
+
+
+class Level(models.Model):
+    winter = models.CharField()
+    spring = models.CharField()
+    summer = models.CharField()
+    autumn = models.CharField()
+
+    def __str__(self):
+        return f'{self.winter} {self.spring} {self.summer} {self.autumn}'
+
+
+class Coordinates(models.Model):
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, default=0)  # широта
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, default=0)  # долгота
+    height = models.DecimalField(max_digits=6, decimal_places=2, default=0)  # высота
+
+    def __str__(self):
+        return f'{self.latitude} {self.longitude} {self.height}'
 
 
 class Post(models.Model):
     STATUS_CHOICES = [
-        ('new', 'New'),
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected'),
+        ('new', 'New'),  # Добавлено на проверку
+        ('pending', 'Pending'),  # На проверке у модерации
+        ('accepted', 'Accepted'),  # Пост успешно прошел проверку модерации
+        ('rejected', 'Rejected'),  # Пост неуспешно прошел проверку модерации
     ]
 
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)  # широта
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)  # долгота
-    height = models.DecimalField(max_digits=6, decimal_places=2)  # высота
+    coordinates = models.ManyToManyField('Coordinates')
     title = models.CharField(max_length=100)  # Название
     # В случае удаления пользователя оставляем запись
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)  # Время создания
     images = models.ManyToManyField('PostImage')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='new')  # Статус модерации
+    level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True)
 
     objects = models.Manager()
 
@@ -43,3 +61,6 @@ class PostImage(models.Model):
     image = models.ImageField(upload_to='images/')
 
     objects = models.Manager()
+
+    def __str__(self):
+        return f'{self.image}'
