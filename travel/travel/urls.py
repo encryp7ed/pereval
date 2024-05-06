@@ -15,16 +15,35 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from rest_framework_swagger.views import get_swagger_view
+from rest_framework import routers
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from app import views
 
-schema_view = get_swagger_view(title='Swagger API')
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Pereval API",
+        default_version='v1',
+        description='API for all things',
+    ),
+    public=True,
+)
+
+router = routers.DefaultRouter()
+router.register(r'posts', views.PostViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path(r'swagger-docs/', schema_view),
+    path("create/", views.create),
+    path("delete/<int:id>/", views.delete),
+
+    path('view_posts/', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('doc/', schema_view.with_ui('swagger', cache_timeout=0),
+         name='schema-swagger-ui'),
 ]
 
 # Указание пути Django, куда сохранять изображения

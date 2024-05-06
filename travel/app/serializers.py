@@ -5,7 +5,7 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'second_name', 'middle_name', 'email', 'phone_number')
+        fields = ('id', 'first_name', 'last_name', 'middle_name', 'email', 'phone_number')
 
 
 class PostImageSerializer(serializers.ModelSerializer):
@@ -14,17 +14,24 @@ class PostImageSerializer(serializers.ModelSerializer):
         fields = ('id', 'image')
 
 
-class CoordinatesSerializer(serializers.ModelSerializer):
+class LevelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Coordinates
+        model = Level
         fields = ('winter', 'spring', 'summer', 'autumn')
 
 
-class PostSerializer(serializers.ModelSerializer):
+class CoordinatesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coordinates
+        fields = ('latitude', 'longitude', 'height')
+
+
+class PostAddedSerializer(serializers.HyperlinkedModelSerializer):
     author = UserSerializer()  # Сериализатор пользователя для поля автора
     images = PostImageSerializer(many=True)  # Сериализатор изображений для отношения ManyToMany
     coordinates = CoordinatesSerializer()
+    level = LevelSerializer()
 
     class Meta:
         model = Post
-        fields = ('id', 'coordinates', 'name', 'author', 'images', 'created_at')
+        fields = ('id', 'coordinates', 'level', 'title', 'author', 'images', 'created_at')

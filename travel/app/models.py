@@ -18,10 +18,10 @@ class User(models.Model):
 
 
 class Level(models.Model):
-    winter = models.CharField()
-    spring = models.CharField()
-    summer = models.CharField()
-    autumn = models.CharField()
+    winter = models.CharField(max_length=255)
+    spring = models.CharField(max_length=255)
+    summer = models.CharField(max_length=255)
+    autumn = models.CharField(max_length=255)
 
     def __str__(self):
         return f'{self.winter} {self.spring} {self.summer} {self.autumn}'
@@ -49,7 +49,7 @@ class Post(models.Model):
     # В случае удаления пользователя оставляем запись
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)  # Время создания
-    images = models.ManyToManyField('PostImage')
+    images = models.ManyToManyField('PostImage', related_name='posts')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='new')  # Статус модерации
     level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True)
 
@@ -57,6 +57,7 @@ class Post(models.Model):
 
 
 class PostImage(models.Model):
+    post = models.ForeignKey(Post, related_name='post_images', on_delete=models.CASCADE)
     # Сохраняем ссылки на изображения
     image = models.ImageField(upload_to='images/')
 
