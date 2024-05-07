@@ -1,40 +1,62 @@
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 from .serializers import PostAddedSerializer
 from .models import Post
 
 
-@csrf_exempt
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('id')
     serializer_class = PostAddedSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                # Ваш код для выполнения операции
 
-# Сохранение данных в БД
-def create(request):
-    if request.method == 'POST':
-        post = Post()
-        post.latitude = request.POST.get('latitude')
-        post.longitude = request.POST.get('longitude')
-        post.height = request.POST.get('height')
-        post.title = request.POST.get('title')
-        post.level = request.POST.get('level')
-        post.author_id = request.POST.get('author_id')
-        post.status = 'new'
-        post.save()
+                # Если операция выполнена успешно
+                post_instance = serializer.save()
+                return Response({
+                    "status": status.HTTP_200_OK,
+                    "message": "Отправлено успешно",
+                    "id": post_instance.id  # ID новой записи
+                })
 
-        # Обработка загрузки изображений
-        images = request.FILES.getlist('images')
-        for image in images:
-            post.images.create(image=image)
+            except Exception as e:
+                # Если произошла ошибка при выполнении операции
+                return Response({
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "message": str(e)  # Причина ошибки
+                })
 
-    return HttpResponseRedirect('/')
+        # Если запрос некорректен (например, нехватка полей)
+        return Response({
+            "status": status.HTTP_400_BAD_REQUEST,
+            "message": "Bad Request"
+        })
 
+    def delete(self, request, *args, **kwargs):
+        try:
+            # Ваш код для удаления данных
+            instance = self.get_object()
+            self.perform_destroy(instance)
 
-# Удаление данных из БД
-def delete(request, id):
-    post = get_object_or_404(Post, id=id)
-    post.delete()
-    return HttpResponseRedirect('/')
+            # Если данные удалены успешно
+            return Response({
+                "status": status.HTTP_200_OK,
+                "message": "Успешно удалено"
+            })
+
+        except Post.DoesNotExist:
+            # Если пост с указанным ID не найден
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "message": "Post not found"
+            })
+
+        except Exception as e:
+            # Если произошла ошибка при удалении данных
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": str(e)  # Причина ошибки
+            })

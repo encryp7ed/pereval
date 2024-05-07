@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from rest_framework import routers
+from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from app import views
@@ -30,6 +30,7 @@ schema_view = get_schema_view(
         description='API for all things',
     ),
     public=True,
+    permission_classes=[permissions.AllowAny]
 )
 
 router = routers.DefaultRouter()
@@ -37,11 +38,13 @@ router.register(r'posts', views.PostViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("create/", views.create),
-    path("delete/<int:id>/", views.delete),
+    path('', include(router.urls)),  # Подключение маршрутов из viewset'а
+    path("create/", views.create),  # Путь для создания записей (POST)
+    path("delete/<int:id>/", views.delete),  # Путь для удаления записей (GET)
 
-    path('view_posts/', include(router.urls)),
+    # Подключение аутентификации Django REST Framework
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # Подключение документации Swagger
     path('doc/', schema_view.with_ui('swagger', cache_timeout=0),
          name='schema-swagger-ui'),
 ]
