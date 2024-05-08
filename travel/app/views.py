@@ -82,3 +82,28 @@ class PostViewSet(viewsets.ModelViewSet):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "message": str(e)
             })
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            if instance.status == 'new':
+                # Убедимся, что поля ФИО, адреса почты и номера телефона не меняются
+                if 'user' in serializer.validated_data or 'coordinates' in serializer.validated_data or 'level' in serializer.validated_data:
+                    return Response({
+                        "status": '0',
+                        "message": "Вы не можете изменить поля user, coordinates или level"
+                    })
+                else:
+                    serializer.save()
+                    return Response({
+                        "status": '1',
+                        "message": "Пост успешно обновлен"
+                    })
+            else:
+                return Response({
+                    "status": '0',
+                    "message": "Пост не имеет статус 'new' и не может быть обновлен"
+                })
+        else:
+            return Response(serializer.errors, status='0')
