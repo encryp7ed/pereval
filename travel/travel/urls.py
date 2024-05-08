@@ -39,8 +39,6 @@ router.register(r'posts', views.PostViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),  # Подключение маршрутов из viewset'а
-    path("create/", views.create),  # Путь для создания записей (POST)
-    path("delete/<int:id>/", views.delete),  # Путь для удаления записей (GET)
 
     # Подключение аутентификации Django REST Framework
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),

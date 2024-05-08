@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import PostAddedSerializer
 from .models import Post
 
@@ -7,6 +8,8 @@ from .models import Post
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('id')
     serializer_class = PostAddedSerializer
+    filter_backends = [DjangoFilterBackend]  # Добавляем поиск по фильтрам
+    filterset_fields = ['user__email']  # Поля для фильтрации
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -59,4 +62,23 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "message": str(e)  # Причина ошибки
+            })
+
+    # Получаем информацию о перевале по его id, включая статус ее модерации
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)  # Вся информация об объекте
+            return Response(serializer.data)
+
+        except Post.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "message": "Post not found"
+            })
+
+        except Exception as e:
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": str(e)
             })
